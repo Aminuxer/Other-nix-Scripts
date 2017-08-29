@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ProxMox Backup Sorter by Amin 2017-08-30
+# Parse vzdump-logs and place backups in subdirs
+# Proxmox 4.x required, need VM Name data in log-files
+
 if [ -d "$1" ]
    then wdir=$1;
    else
