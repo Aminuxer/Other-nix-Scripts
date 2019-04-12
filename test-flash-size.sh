@@ -9,7 +9,6 @@ echo "
    !! using WRITE commands to raw-blocks of target disk !!
 ";
 
-
 if [[ $EUID -ne 0 ]]; then
     echo "!! You must be root;"
     exit 1
@@ -31,7 +30,7 @@ then
 fi
 
 
-target_disk_blkid=`blkid $target_dev*`;
+target_disk_blkid=`blkid $target_dev* 2>/dev/null`;
 target_disk_hdprm=`hdparm -i $target_dev 2>/dev/null | grep Model`;
 if [ -n "$target_disk_blkid" ]
    then  echo "BLKiD: $target_disk_blkid";
@@ -43,7 +42,7 @@ if [ -n "$target_disk_hdprm" ]
 
 raw_target_space_blocks=`cat /sys/block/$target_disk/size`;                                    # Device size in blocks
 raw_target_block_size=`cat /sys/block/$target_disk/queue/logical_block_size`;                  # size of each block, bytes
-raw_target_space=`echo "$raw_target_block_size*$raw_target_space_blocks/1048576" | bc`;        # Target device size, Mb
+raw_target_space=$[ $raw_target_block_size * $raw_target_space_blocks / 1048576 ];             # Target device size, Mb
 
 echo "
  * Reported size: $raw_target_space Mb
@@ -102,4 +101,3 @@ echo "
  First/top OK mark indicate true size;
  If you see FAIL mark, this sector crashed;
  Sector data stored in /tmp (testing read/write) and /var/tmp (original data)";
-
