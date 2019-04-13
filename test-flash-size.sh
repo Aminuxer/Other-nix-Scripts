@@ -2,13 +2,12 @@
 
 
 echo "
-            ***  True size checker for USB sticks     v. 0.3 [2019-04-12]  ***
+            ***  True size checker for USB sticks     v. 0.4 [2019-04-12]  ***
 
-   This script check true volume size for detect fraud chinese usb-sticks
+   This script check true device size for detect fraud chinese usb-sticks
    !! Need ROOT rights      Make BACKUPS !!      Can be dangerous      !!
    !! using WRITE commands to raw-blocks of target disk !! NO WARRANTY !!
 ";
-
 
 if [[ $EUID -ne 0 ]]; then
     echo "!! You must be root;"
@@ -71,6 +70,8 @@ do
    frnd1="/tmp/Dev_$target_disk-block-$block-RND1.dd";
    frnd2="/tmp/Dev_$target_disk-block-$block-RND2.dd";
 
+   touch $fbckp $frnd1 $frnd2;
+   chmod 600 $fbckp $frnd1 $frnd2;
 
    # backup original sector
    err=$(dd if=$target_dev of=$fbckp count=1 bs=$raw_target_block_size skip=$block 2>&1)
@@ -154,5 +155,5 @@ echo "
 -----------------------------------
  First/top OK mark indicate true size;
  If you see FAIL mark, this sector crashed;
- Sector data stored in /tmp (testing read/write) and /var/tmp (original data)
+ Sector data stored in /tmp (testing read/write data, backups)
  https://github.com/Aminuxer/Other-nix-Scripts/blob/master/test-flash-size.sh";
