@@ -2,12 +2,13 @@
 
 
 echo "
-            ***  True size checker for USB sticks   v. 0.2  ***
+            ***  True size checker for USB sticks     v. 0.3 [2019-04-12]  ***
 
    This script check true volume size for detect fraud chinese usb-sticks
-   !! Need ROOT rights         !! Can be dangerous      !!
-   !! using WRITE commands to raw-blocks of target disk !!
+   !! Need ROOT rights      Make BACKUPS !!      Can be dangerous      !!
+   !! using WRITE commands to raw-blocks of target disk !! NO WARRANTY !!
 ";
+
 
 if [[ $EUID -ne 0 ]]; then
     echo "!! You must be root;"
@@ -56,43 +57,96 @@ if [ -n "$mount_data" ]
    then echo "!! Can't operate over mounted partitions; Unmount and sync first, try again;"; exit 5;
 fi
 
+
+block=$[ $raw_target_space_blocks - 1 ];   # blocks numerated from 0
 size=$raw_target_space;
+
 
 while [ $size -gt 1 ]
 do
-   block=$[ ( $size * 1048576 / $raw_target_block_size ) - 1 ];
+   size=$[ $block * $raw_target_block_size / 1048576 ];   # recalc to Mb for nice view
    echo -n "Check size $size Mb, block $block ...";
 
+   fbckp="/tmp/Dev_$target_disk-block-$block-ORIGINAL-BACKUP.dd";
+   frnd1="/tmp/Dev_$target_disk-block-$block-RND1.dd";
+   frnd2="/tmp/Dev_$target_disk-block-$block-RND2.dd";
+
+
    # backup original sector
-   dd if=$target_dev of=/var/tmp/Dev_$target_disk-block-$block-ORIGINAL-BACKUP.dd count=1 bs=$raw_target_block_size skip=$block 2>/dev/null
+   err=$(dd if=$target_dev of=$fbckp count=1 bs=$raw_target_block_size skip=$block 2>&1)
+   if [ $? -ne 0 ]
+   then
+      echo " /_!_\ Can't make backup of sector $block - Emergency exit !
+      $err";
+      exit 61;
+   fi
+
 
    # generate random data and store to RND1-file
-   dd if=/dev/urandom of=/tmp/Dev_$target_disk-block-$block-RND1.dd bs=$raw_target_block_size count=1 2>/dev/null
+   err=$(dd if=/dev/urandom of=$frnd1 bs=$raw_target_block_size count=1 2>&1)
+   if [ $? -ne 0 ]
+   then
+      echo " /_!_\ Can't write init random data for sector $block - Attention !
+      $err";
+      exit 62;
+   fi
+
+
+   # check RND2-accesibility
+   err=$(dd if=/dev/zero of=$frnd2 count=1 bs=$raw_target_block_size 2>&1)
+   if [ $? -ne 0 ]
+   then
+      echo " /_!_\ Can't make test write to data2 from sector $block - Attention !
+      $err";
+      exit 63;
+   fi
+   sync
+
 
    # override test sector by RND1-file and SYNC!! We must read not from cache !!
-   dd if=/tmp/Dev_$target_disk-block-$block-RND1.dd of=$target_dev count=1 bs=$raw_target_block_size seek=$block 2>/dev/null
+   err=$(dd if=$frnd1 of=$target_dev count=1 bs=$raw_target_block_size seek=$block 2>&1)
+   if [ $? -ne 0 ]
+   then
+      echo " /_!_\ Can't write random data1 to sector $block - CRITICAL ERROR !!
+      !! Inspect logs; Use $fbckp for manual restore sector (dd seek option), if need;
+      $err";
+      exit 64;
+   fi
    sync
 
    # read test sector to RND2-file
-   dd if=$target_dev of=/tmp/Dev_$target_disk-block-$block-RND2.dd count=1 bs=$raw_target_block_size skip=$block 2>/dev/null
+   err=$(dd if=$target_dev of=$frnd2 count=1 bs=$raw_target_block_size skip=$block 2>&1)
+   if [ $? -ne 0 ]
+   then
+      echo " /_!_\ Can't read data2 from sector $block - Attention !
+      $err";
+      exit 65;
+   fi
    sync
 
    # restore test sector from backup
-   dd if=/var/tmp/Dev_$target_disk-block-$block-ORIGINAL-BACKUP.dd of=$target_dev count=1 bs=$raw_target_block_size seek=$block 2>/dev/null
+   err=$(dd if=$fbckp of=$target_dev count=1 bs=$raw_target_block_size seek=$block 2>&1)
+   if [ $? -ne 0 ]
+   then
+      echo " /_!_\ Can't restore sector $block from backup - CRITICAL ERROR !! BE CARE !!
+      !! Inspect logs; Use $fbckp for manual restore sector (dd seek option), if need;
+      $err";
+      exit 66;
+   fi
    sync
 
    # check hashes of dumps
-   hash1=`sha256sum /tmp/Dev_$target_disk-block-$block-RND1.dd | cut -d ' ' -f 1`;
-   hash2=`sha256sum /tmp/Dev_$target_disk-block-$block-RND2.dd | cut -d ' ' -f 1`;
+   hash1=`sha256sum $frnd1 | cut -d ' ' -f 1`;
+   hash2=`sha256sum $frnd2 | cut -d ' ' -f 1`;
    if [ $hash1 == $hash2 ]
    then
       echo " OK";
    else
       echo " !! FAIL !!
-       Writed-Hash: $hash1
-       Readed-Hash: $hash2";
+       Writed-Hash: $hash1 ( $frnd1 )
+       Readed-Hash: $hash2 ( $frnd2 )";
    fi
-   size=$[ $size / 2 ]
+   block=$[ $block / 2 ]
 done
 
 
@@ -100,4 +154,5 @@ echo "
 -----------------------------------
  First/top OK mark indicate true size;
  If you see FAIL mark, this sector crashed;
- Sector data stored in /tmp (testing read/write) and /var/tmp (original data)";
+ Sector data stored in /tmp (testing read/write) and /var/tmp (original data)
+ https://github.com/Aminuxer/Other-nix-Scripts/blob/master/test-flash-size.sh";
