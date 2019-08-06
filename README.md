@@ -32,6 +32,7 @@ All files will places to subdirectories like this:
             └── vzdump-qemu-406-2019_08_03-03_38_31.tar.gz
 ```
 This can be useful for archive store.
+PS. Don't make this on work directories of proxmox - this backups will disappear from web-interface. This only for tape / detached backups.
 
 
 ## test-flash-size.sh
