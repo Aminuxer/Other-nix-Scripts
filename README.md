@@ -32,6 +32,7 @@ All files will places to subdirectories like this:
             └── vzdump-qemu-406-2019_08_03-03_38_31.tar.gz
 ```
 This can be useful for archive store.
+https://aminux.wordpress.com/2017/08/30/proxmox-sort-vzdump-backups/
 PS. Don't make this on work directories of proxmox - this backups will disappear from web-interface. This only for tape / detached backups.
 
 
@@ -71,3 +72,4 @@ First/top OK mark indicate true size;
 If you see FAIL mark, this sector crashed;
 Sector data stored in /tmp (testing read/write) and /var/tmp (original data)
 ```
+https://aminux.wordpress.com/2019/04/13/very-fast-usb-flash-size-detect/
