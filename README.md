@@ -73,3 +73,20 @@ If you see FAIL mark, this sector crashed;
 Sector data stored in /tmp (testing read/write) and /var/tmp (original data)
 ```
 https://aminux.wordpress.com/2019/04/13/very-fast-usb-flash-size-detect/
+
+
+## 1cfresh-backup.py
+
+Edit parameters username, password and oneassfresh_accound_id - use data from 1C-Fresh cloud service.
+User must have "administrator" role and "run and manage" permission for each backuped database.
+This script connect to cloud 1C, found and download latest database backup to current directory.
+
+Better run this from non-root account like this:
+
+```
+su - 1cfresh -c "find /home/1cfresh/ -type f -mtime +7 -name '*.zip' -delete"
+su - 1cfresh -c "/home/1cfresh/1cfresh-backup.py 2>&1" > 1cfresh-backup.log
+tar --gzip -cf home_1cfresh.tgz /home/1cfresh
+```
+Paper (russian): https://aminux.wordpress.com/2020/02/28/1cfresh-cloud-backups/
+
