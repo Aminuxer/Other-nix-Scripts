@@ -90,3 +90,9 @@ tar --gzip -cf home_1cfresh.tgz /home/1cfresh
 ```
 Paper (russian): https://aminux.wordpress.com/2020/02/28/1cfresh-cloud-backups/
 
+In case of username/password error your catch exception 'HTTP Error 401: Unauthorized';
+
+Also your can see message "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'my_domain_name.local.corp'. (_ssl.c:1076)>"
+
+You can try fix this with urllib ssl-hacks, but better way - make normal certificates by Let's Encrypt or self-hosted inner-corporate local CA.
+
