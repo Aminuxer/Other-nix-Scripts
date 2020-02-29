@@ -48,7 +48,8 @@ print ('   1C Major Ver: '+ str(json_ver['version']) + ' sm_version: ' + str(jso
 
 # Get json with list of tenants (database objects)
 url_tlist = server+'/a/adm/hs/ext_api/execute'
-post_data = '{ "general": { "type": "ext", "method": "tenant/list", "debug": true }, "auth": {"account": ' + str(oneassfresh_accound_id) + '}}'
+post_data = '{ "general": { "type": "ext", "method": "tenant/list", "debug": true }, \
+     "auth": {"account": ' + str(oneassfresh_accound_id) + '}}'
 
 tlist_obj = urllib.request.urlopen(url_tlist, post_data.encode('utf-8'))
 tlist_str = tlist_obj.read().decode('utf-8')     # req - read - decode
@@ -62,11 +63,14 @@ dbs = {}   # Database properties by iD
 
 for tenant in tenants:
     tid = tenant['id']
-    print ('   ** БД: iD: ' + str(tid) + ' Version: ' + tenant['app_version'] + ' Name: '+ tenant['name'])
+    print ('   ** БД: iD: ' + str(tid) + \
+               ' Version: ' + tenant['app_name'] + ' ' + tenant['app_version'] + \
+                  ' Name: '+ tenant['name'])
     dbs.setdefault(tid, {})
     dbs[tid]['ts'] = '1970-01-01T00:00:01'
     dbs[tid]['name'] = tenant['name']
     dbs[tid]['ver'] = tenant['app_version']
+    dbs[tid]['app_name'] = tenant['app_name']
 
 # print(dbs)
 print ('\n')
@@ -75,7 +79,8 @@ print ('\n')
 
 # Get json with list of backups
 url_blist = server+'/a/adm/hs/ext_api/execute'
-post_data = '{ "general": { "type": "ext", "method": "backup/list", "debug": false }, "auth": {"account": ' + str(oneassfresh_accound_id) + '}}'
+post_data = '{ "general": { "type": "ext", "method": "backup/list", "debug": false }, \
+     "auth": {"account": ' + str(oneassfresh_accound_id) + '}}'
 
 blist_obj = urllib.request.urlopen(url_blist, post_data.encode('utf-8'))
 blist_str = blist_obj.read().decode('utf-8')     # req - read - decode
@@ -103,8 +108,10 @@ url_dlist = server+'/a/adm/hs/ext_api/execute'
 for dl in dbs:
     uuid = dbs[dl]['uuid']
     name = dbs[dl]['name']
+    ver = dbs[dl]['app_name']+dbs[dl]['ver']
     ts = dbs[dl]['ts']
-    post_data = '{ "id": "' + uuid + '", "general": { "version": 9, "type": "usr", "method": "backup/file_token/download", "debug": true }, \
+    post_data = '{ "id": "' + uuid + '", "general": { "version": 9, "type": "usr", \
+       "method": "backup/file_token/download", "debug": true }, \
          "auth": {"account": ' + str(oneassfresh_accound_id) + ', "type": "user" }}'
     # get download token for each most fresh backup
     dlist_obj = urllib.request.urlopen(url_dlist, post_data.encode('utf-8'))
@@ -120,6 +127,6 @@ for dl in dbs:
     if (error != False):
         print(dlist_str)
     else:
-        fn = name + '_' + ts + '.zip'
+        fn = name + '_' + ts + '.zip'   # + ver / uuid ? 
         local_filename, headers = urllib.request.urlretrieve(url, filename=fn)
         print(headers)
