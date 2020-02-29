@@ -31,7 +31,11 @@ urllib.request.install_opener(opener)     # Set as default opener for all urllib
 
 # Get json with api version
 url_getversion = server+'/a/adm/hs/ext_api/version'
-json_version_obj = opener.open(url_getversion)
+try:
+    json_version_obj = opener.open(url_getversion)
+except Exception as e:
+   print(e)
+   exit(-1)
 
 print ('   HTTP-Code ' + str(json_version_obj.getcode()) + ' from external '+json_version_obj.getheader('Server'))
 json_version_str = json_version_obj.read().decode('utf-8')     # Read http-response and convert raw-bytes to UTF-8 string
