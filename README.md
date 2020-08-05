@@ -96,3 +96,27 @@ Also your can see message "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certi
 
 You can try fix this with urllib ssl-hacks, but better way - make normal certificates by Let's Encrypt or self-hosted inner-corporate local CA.
 
+
+## totp.py
+
+Generate Timebased one-time passwords in very tiny python script; Can be used as cold backup of data parallel with Google Authenticator or similar TOTP generator.
+Configured version must be stored securely;
+Edit script, and fill values in array [srv] by your secrets and descriptions;
+Run it at last moment before input 2nd factor, you must view totp codes in output:
+
+...
+$ ./totp.py
+  ------ | -------------------------------------------------------------------
+  349462 | My Proxmox cluster (192.168.0.*)
+  560741 | My GitHub (username)
+  846956 | Hosting, SSH
+...
+
+TOTP codes valid only 30 seconds; If you code expired, try generate and input this again.
+Simple and reliable backup of data from TOTP generator;
+Use cryptocontainers:
+    https://github.com/Aminuxer/DM-Crypt-Helper-Scripts
+for store configured script !!
+
+First version (v1) rely on mintotp and need pip3 install mintotp; last version (v2) don't have external dependencies;
+
