@@ -104,13 +104,13 @@ Configured version must be stored securely;
 Edit script, and fill values in array [srv] by your secrets and descriptions;
 Run it at last moment before input 2nd factor, you must view totp codes in output:
 
-...
+```
 $ ./totp.py
   ------ | -------------------------------------------------------------------
   349462 | My Proxmox cluster (192.168.0.*)
   560741 | My GitHub (username)
   846956 | Hosting, SSH
-...
+```
 
 TOTP codes valid only 30 seconds; If you code expired, try generate and input this again.
 Simple and reliable backup of data from TOTP generator;
