@@ -7,7 +7,7 @@ srv = { #        Secret key              Server name
       }
 
 
-# Micro-TOTP Generator by Amin v. 2020-08-01
+# Micro-TOTP Generator by Amin v. 2020-08-05 (v3)
 # https://aminux.wordpress.com/
 
 import base64
@@ -32,7 +32,5 @@ def totp(key, time_step=30, digits=6, digest='sha1'):
 
 print ('  ------ | -------------------------------------------------------------------');
 for s in srv:
-    k = totp(srv[s]['k'])
-    n = srv[s]['n']
-    print (' ',k, '|', n)
+    print (' ', totp(srv[s]['k']), '|', srv[s]['n'])
 
