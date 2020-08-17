@@ -1,24 +1,31 @@
 #!/bin/bash
 
 
-echo "
-            ***  True size checker for USB sticks     v. 0.4 [2019-04-12]  ***
+echo "     ***  True size checker for USB sticks     v. 0.5 [2020-08-18]  ***
 
    This script check true device size for detect fraud chinese usb-sticks
    !! Need ROOT rights      Make BACKUPS !!      Can be dangerous      !!
    !! using WRITE commands to raw-blocks of target disk !! NO WARRANTY !!
 ";
 
-if [[ $EUID -ne 0 ]]; then
-    echo "!! You must be root;"
-    exit 1
+
+hashfunk=`which md5sum sha1sum sha224sum sha256sum sha384sum sha512sum crc32 2>/dev/null | sort -r | head -n 1`
+hashfunkname=`basename $hashfunk`
+if [ -z $hashfunk ]
+   then echo "Can't find hashsum tools like sha256sum / sha1sum / md5sum / crc32; Install it and try again;"
+   exit 2;
 fi
 
 
-echo "   Enter target DISK name (ex, sdb):";
+if [[ $EUID -ne 0 ]]; then
+    echo "!! You must be root;"
+    exit 13
+fi
+
+
+echo "   Enter target DISK name (ex, sdb, nvme0n1, loop1):";
 read target_disk;
-target_disk=`echo "$target_disk" | cut -b 1-3`;                # ex sdb
-target_dev="/dev/$target_disk";                                # ex /dev/sdb
+target_dev="/dev/$target_disk";                   # ex /dev/sdb
 
 
 is_device="$(ls /dev/$target_disk 2>/dev/null)";
@@ -26,22 +33,29 @@ if [ -z "$is_device" ] || [ -z "$target_disk" ]
 then
    echo "Your disk '$target_disk' not found in /dev; Bad disk name ?
    Try command : ls /dev/sd* for find your target disk;"
-   exit 3
+   exit 19;
 fi
 
 
 target_disk_blkid=`blkid $target_dev* 2>/dev/null`;
-target_disk_hdprm=`hdparm -i $target_dev 2>/dev/null | grep Model`;
 if [ -n "$target_disk_blkid" ]
    then  echo "BLKiD: $target_disk_blkid";
    fi
+
+target_disk_hdprm=`hdparm -i $target_dev 2>/dev/null | grep Model`;
 if [ -n "$target_disk_hdprm" ]
    then  echo "HDPARM: $target_disk_hdprm";
    fi
 
 
-raw_target_space_blocks=`cat /sys/block/$target_disk/size`;                                    # Device size in blocks
-raw_target_block_size=`cat /sys/block/$target_disk/queue/logical_block_size`;                  # size of each block, bytes
+raw_target_space_blocks=`cat /sys/block/$target_disk/size 2>/dev/null`;                        # Device size in blocks
+raw_target_block_size=`cat /sys/block/$target_disk/queue/logical_block_size 2>/dev/null`;      # size of each block, bytes
+
+if [ -z $raw_target_space_blocks ]
+   then echo "Can't determine size of device or block; Not-block device ?"
+   exit 15;
+fi
+
 raw_target_space=$[ $raw_target_block_size * $raw_target_space_blocks / 1048576 ];             # Target device size, Mb
 
 echo "
@@ -51,9 +65,16 @@ echo "
 ";
 
 
-mount_data=`mount | grep $target_disk`;
+mount_data=`mount | grep "/dev/$target_disk"`;
 if [ -n "$mount_data" ]
-   then echo "!! Can't operate over mounted partitions; Unmount and sync first, try again;"; exit 5;
+   then echo "!! Can't operate over mounted partitions; Unmount and sync first, try again;";
+   exit 16;
+fi
+
+raid_data=`cat /proc/mdstat | grep $target_disk`;
+if [ -n "$raid_data" ]
+   then echo "!! Can't operate over RAID-members; Unmount, stop array and sync first, try again;";
+   exit 18;
 fi
 
 
@@ -79,7 +100,7 @@ do
    then
       echo " /_!_\ Can't make backup of sector $block - Emergency exit !
       $err";
-      exit 61;
+      exit 5;
    fi
 
 
@@ -89,7 +110,7 @@ do
    then
       echo " /_!_\ Can't write init random data for sector $block - Attention !
       $err";
-      exit 62;
+      exit 202;
    fi
 
 
@@ -99,7 +120,7 @@ do
    then
       echo " /_!_\ Can't make test write to data2 from sector $block - Attention !
       $err";
-      exit 63;
+      exit 203;
    fi
    sync
 
@@ -111,7 +132,7 @@ do
       echo " /_!_\ Can't write random data1 to sector $block - CRITICAL ERROR !!
       !! Inspect logs; Use $fbckp for manual restore sector (dd seek option), if need;
       $err";
-      exit 64;
+      exit 204;
    fi
    sync
 
@@ -121,7 +142,7 @@ do
    then
       echo " /_!_\ Can't read data2 from sector $block - Attention !
       $err";
-      exit 65;
+      exit 205;
    fi
    sync
 
@@ -132,28 +153,28 @@ do
       echo " /_!_\ Can't restore sector $block from backup - CRITICAL ERROR !! BE CARE !!
       !! Inspect logs; Use $fbckp for manual restore sector (dd seek option), if need;
       $err";
-      exit 66;
+      exit 206;
    fi
    sync
 
    # check hashes of dumps
-   hash1=`sha256sum $frnd1 | cut -d ' ' -f 1`;
-   hash2=`sha256sum $frnd2 | cut -d ' ' -f 1`;
+   hash1=`$hashfunk $frnd1 | cut -d ' ' -f 1`;
+   hash2=`$hashfunk $frnd2 | cut -d ' ' -f 1`;
    if [ $hash1 == $hash2 ]
    then
+      rm -f $frnd1 $frnd2 $fbckp
       echo " OK";
    else
-      echo " !! FAIL !!
+      echo " !! FAIL !!     $hashfunkname
        Writed-Hash: $hash1 ( $frnd1 )
        Readed-Hash: $hash2 ( $frnd2 )";
    fi
    block=$[ $block / 2 ]
 done
 
-
 echo "
 -----------------------------------
- First/top OK mark indicate true size;
+ First/top OK mark can indicate true size;
  If you see FAIL mark, this sector crashed;
  Sector data stored in /tmp (testing read/write data, backups)
  https://github.com/Aminuxer/Other-nix-Scripts/blob/master/test-flash-size.sh";
