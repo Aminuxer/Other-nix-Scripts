@@ -106,7 +106,7 @@ Run it at last moment before input 2nd factor, you must view totp codes in outpu
 
 ```
 $ ./totp.py
-  ------ | -------------------------------------------------------------------
+  ----- 23 -------------------------------------------------------------------
   349462 | My Proxmox cluster (192.168.0.*)
   560741 | My GitHub (username)
   846956 | Hosting, SSH
@@ -118,5 +118,7 @@ Use cryptocontainers:
     https://github.com/Aminuxer/DM-Crypt-Helper-Scripts
 for store configured script !!
 
-First version (v1) rely on mintotp and need pip3 install mintotp; last version (v2) don't have external dependencies;
+First version (v1) rely on mintotp and need pip3 install mintotp;
+Since version (v2) don't have external dependencies;
+In version (v5) add remain activity seconds in header
 
