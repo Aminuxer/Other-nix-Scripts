@@ -118,7 +118,10 @@ Use cryptocontainers:
     https://github.com/Aminuxer/DM-Crypt-Helper-Scripts
 for store configured script !!
 
-First version (v1) rely on mintotp and need pip3 install mintotp;
+First version (v1) rely on mintotp and need
+`pip3 install mintotp`
+
 Since version (v2) don't have external dependencies;
-In version (v5) add remain activity seconds in header
+
+In version (v5) add remain activity seconds in table header
 
