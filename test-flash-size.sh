@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-echo "     ***  True size checker for USB sticks     v. 0.5 [2020-08-18]  ***
+echo "     ***  True size checker for USB sticks     v. 0.6 [2021-11-03]  ***
 
    This script check true device size for detect fraud chinese usb-sticks
    !! Need ROOT rights      Make BACKUPS !!      Can be dangerous      !!
@@ -75,8 +75,11 @@ raid_data=`cat /proc/mdstat | grep $target_disk`;
 if [ -n "$raid_data" ]
    then echo "!! Can't operate over RAID-members; Unmount, stop array and sync first, try again;";
    exit 18;
+elif [ `lsblk /dev/$target_disk -n -o MOUNTPOINT 2> /dev/null | grep -v '^$' | wc -l` -gt 0 ]
+      then echo "$target_disk has active MOUNTPOINT."; exit 20;
+elif [ `zpool list -v -o health | grep ONLINE | grep $target_disk | wc -l` -gt 0 ]
+      then echo "$target_disk has active ZFS."; exit 22;
 fi
-
 
 block=$[ $raw_target_space_blocks - 1 ];   # blocks numerated from 0
 size=$raw_target_space;
