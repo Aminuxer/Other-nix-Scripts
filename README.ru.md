@@ -14,6 +14,7 @@ vzdump-qemu-406-2019_08_03-03_38_31.log
 vzdump-qemu-406-2019_08_03-03_38_31.tar.gz
 ```
 Рассортируем их по типам и именам виртуалок:
+
 `./proxmox_backup_sorter.sh /mnt/proxmox/dump`
 
 Все файлы будут раскиданы по подкаталогам таким образом:
@@ -48,8 +49,11 @@ PS. Не используйте это напрямую в рабочих хра
 
 `# ./test-flash-size.sh`
 
-WARNING: This script make writes to media !! Sectors recovered after tests, but unstable / buggy flash can crashed; Make backups !
-Example of test result:
+ВАЖНО: Этот скрипт пишет на носитель !! Содержимое секторов будет восстановлено после тестов, однако
+нестабильные / глючные флешки могут сломаться. Делайте бэкапы.
+
+Пример вывода скрипта:
+
 ```
 *** True size checker for USB sticks v. 0.4 [2019-04-12] ***
 
@@ -80,6 +84,7 @@ If you see FAIL mark, this sector crashed;
 Sector data stored in /tmp (testing read/write) and /var/tmp (original data)
 ```
 Первая ОК-запись будет истинным размером.
+Запустить тест на смонтированных файловых системах или активных частях RAID/LVM/ZFS не удастся, в скрипте есть проверка.
 
 https://aminux.wordpress.com/2019/04/13/very-fast-usb-flash-size-detect/
 
