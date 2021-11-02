@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# Amin 's Smart SHRED script   v. 2021-11-02
+# Amin 's Safety SHRED script   v. 2021-11-02
+
 
 if [ "$1" != '' ]
    then TARGET="$1";   # TARGET - path to shredded device
    else
         echo "Usage: $0 <Path to device for CLEAN>
-    Example: $0 /dev/sda12
-             $0 /dev/md69
-             $0 /dev/mapper/LVM-LV1";
+    Example: $0 /dev/sda12          - shred partition #12 on SDA
+             $0 /dev/md69           - shred RAID-array md69
+             $0 /dev/mapper/LVM-LV1 - shred LVM Logical volume";
         exit 1;
 fi
 
@@ -36,6 +37,7 @@ RPATH=`realpath "$TARGET"`;   # full-path
 
    elif [ `lsblk $RPATH -n -o MOUNTPOINT 2> /dev/null | grep -v '^$' | wc -l` -gt 0 ]
       then echo "Block device $RPATH has active MOUNTPOINT."; exit 75;
+
    elif [ `losetup -a | grep "$RPATH" | wc -l` -gt 0 ]
           then echo "This device loop-mapped ! Stop it first."; exit 62;
    fi
@@ -46,6 +48,8 @@ echo '----- Controlled SHRED ---------------------';
 
      if [ `echo "$RPATH" | grep -E "^/dev/"` ]
         then echo "!! ATTENTION !! Device $RPATH will be ERASED!";
+     elif [ -f "$RPATH" ]
+        then echo "File $TARGET selected"
      fi
 
      if [ `which smartctl 2>/dev/null` ]
@@ -55,9 +59,10 @@ echo '----- Controlled SHRED ---------------------';
         then echo "!! Hardware (smartctl):
 $HDINFO"
         fi
-     elif [ `which hdparm 2>/dev/null` ]
+     fi
+     if [ `which hdparm 2>/dev/null` ]
      then
-        HDPARM=`hdparm -i "$RPATH" | grep 'Model' 2>/dev/null`
+        HDPARM=`hdparm -I "$RPATH" | grep -E '(Model|device size|Serial)' 2>/dev/null`
         if [ ! "$HDPARM" == '' ]
            then echo "!! Hardware (hdparm):
 $HDPARM"
