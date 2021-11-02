@@ -124,3 +124,33 @@ Since version (v2) don't have external dependencies;
 
 In version (v4) add remain activity seconds in table header
 
+
+## safety-shred.sh
+
+Allow relatively safe shredding old disks on test computers with check devices for usage.
+Prevent accidentially destroy data in test environments.
+Error cost in device name can be so great in shred command.
+Check hard disk and filesystem info before shredding.
+
+Example for unmounted RAID1-data:
+
+```# ./safety-shred.sh /dev/md0
+
+----- Controlled SHRED ---------------------
+!! ATTENTION !! Device /dev/md0 will be ERASED!
+!! Device has filesystem:
+  /dev/md0:
+LABEL="RAID1-Test"
+UUID="7feba672-a008-4328-977c-55bb2d09dc30"
+BLOCK_SIZE="1024"
+TYPE="ext4"
+ALL DATA on storage WILL BE DESTROYED. Continue (Yes/No)? Yes
+OK, continue...
+Input erase method: Random,Zeros (R/Z/N)? R
+dd: ошибка записи '/dev/md0': На устройстве не осталось свободного места
+11+0 записей получено
+10+0 записей отправлено
+42991616 байт (43 MB, 41 MiB) скопирован, 0,512771 s, 83,8 MB/s
+ERASE /dev/md0 OK
+```
+
