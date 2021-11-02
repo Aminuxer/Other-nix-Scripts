@@ -7,9 +7,9 @@ if [ "$1" != '' ]
    then TARGET="$1";   # TARGET - path to shredded device
    else
         echo "Usage: $0 <Path to device for CLEAN>
-    Example: $0 /dev/sda12          - shred partition #12 on SDA
-             $0 /dev/md69           - shred RAID-array md69
-             $0 /dev/mapper/LVM-LV1 - shred LVM Logical volume";
+    Example: $0 /dev/sda12                 - shred partition #12 on SDA
+             $0 /dev/md69                  - shred RAID-array md69
+             $0 /dev/mapper/LVM-LV1        - shred LVM Logical volume";
         exit 1;
 fi
 
@@ -18,7 +18,7 @@ RPATH=`realpath "$TARGET"`;   # full-path
 
 ## Start safety checks - mounted paritions, RAID, LVM, ZFS
 ##  ACHTUNG CHECKS !!!
-   if [ -e "$TARGET" ] && [ `mount -f | cut -d ' ' -f 1 | grep '/dev/' | grep "$RPATH" | wc -l` -gt 0 ] && [ "$2" != "stop" ]
+   if [ -e "$TARGET" ] && [ `mount -f | cut -d ' ' -f 1 | grep '/dev/' | grep "$RPATH" | wc -l` -gt 0 ]
          then echo "Device $TARGET mounted. Unmount first. BE CARE!"; exit 69;
    elif [ -e "$TARGET" ] && [ `swapon -s | grep '/dev/' | cut -d ' ' -f 1 | grep "$RPATH" | wc -l` -gt 0 ]
       then echo "Device $TARGET is active SWAP. Unmount first. Stop."; exit 71;
@@ -107,5 +107,6 @@ $HDPARM"
         dd if=$SRC of="$TARGET" bs=4M conv=noerror status=progress
         echo "ERASE $TARGET OK";
      fi
+
 
 exit 0;
