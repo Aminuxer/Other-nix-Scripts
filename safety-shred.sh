@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Amin 's Safety SHRED script   v. 2021-11-02
+# Amin 's Safety SHRED script     v. 2021-11-05
 
 
 if [ "$1" != '' ]
@@ -29,7 +29,7 @@ RPATH=`realpath "$TARGET"`;   # full-path
    elif [ -e "$TARGET" ] && [ `pvscan -s 2>/dev/null | grep '/dev/' | grep "$RPATH" | wc -l` -gt 0 ]
       then echo "Device $TARGET in LVM. Stop. BE CARE!"; exit 73;
 
-   elif [ -e "$TARGET" ] && [ `blkid --match-token TYPE="zfs_member" -s LABEL | cut -d ':' -f 1 | grep "$RPATH" | wc -l` -gt 0 ]
+   elif [ -e "$TARGET" ] && [ `blkid -s TYPE | grep ' TYPE="zfs_member"' | cut -d ':' -f 1 | grep "$RPATH" | wc -l` -gt 0 ]
       then echo "Device $TARGET contain ZFS. Stop. BE CARE!"; exit 74;
 
    elif [ ! -e "$TARGET" ] && [ `echo "$RPATH" | grep -E "^/(dev|sys|proc)/"` ]
@@ -42,6 +42,7 @@ RPATH=`realpath "$TARGET"`;   # full-path
           then echo "This device loop-mapped ! Stop it first."; exit 62;
    fi
 ## End safety checks - mounted paritions, RAID, LVM, ZFS
+
 
 echo ' ';
 echo '----- Controlled SHRED ---------------------';
@@ -109,4 +110,6 @@ $HDPARM"
      fi
 
 
+
 exit 0;
+

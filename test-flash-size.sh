@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-echo "     ***  True size checker for USB sticks     v. 0.6 [2021-11-03]  ***
+echo "     ***  True size checker for USB sticks     v. 0.8 [2021-11-05]  ***
 
    This script check true device size for detect fraud chinese usb-sticks
    !! Need ROOT rights      Make BACKUPS !!      Can be dangerous      !!
@@ -75,11 +75,16 @@ raid_data=`cat /proc/mdstat | grep $target_disk`;
 if [ -n "$raid_data" ]
    then echo "!! Can't operate over RAID-members; Unmount, stop array and sync first, try again;";
    exit 18;
+ 
 elif [ `lsblk /dev/$target_disk -n -o MOUNTPOINT 2> /dev/null | grep -v '^$' | wc -l` -gt 0 ]
-      then echo "$target_disk has active MOUNTPOINT."; exit 20;
-elif [ `zpool list -v -o health | grep ONLINE | grep $target_disk | wc -l` -gt 0 ]
-      then echo "$target_disk has active ZFS."; exit 22;
+      then echo "$target_disk has active MOUNTPOINT.";
+      exit 20;
+
+elif [ `blkid -s TYPE | grep ' TYPE="zfs_member"' | cut -d ':' -f 1 | cut -d ':' -f 1 | grep "$target_disk" | wc -l` -gt 0 ]
+      then echo "$target_disk has active ZFS.";
+      exit 22;
 fi
+
 
 block=$[ $raw_target_space_blocks - 1 ];   # blocks numerated from 0
 size=$raw_target_space;
@@ -175,9 +180,14 @@ do
    block=$[ $block / 2 ]
 done
 
+
 echo "
 -----------------------------------
  First/top OK mark can indicate true size;
  If you see FAIL mark, this sector crashed;
  Sector data stored in /tmp (testing read/write data, backups)
  https://github.com/Aminuxer/Other-nix-Scripts/blob/master/test-flash-size.sh";
+
+
+exit 0;
+
