@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Amin 's Safety SHRED script     v. 2021-11-05
+# Amin 's Safety SHRED script     v. 2021-11-06
 
 
 if [ "$1" != '' ]
@@ -36,7 +36,7 @@ RPATH=`realpath "$TARGET"`;   # full-path
       then echo "Path $RPATH not exist in system area. Stop."; exit 75;
 
    elif [ `lsblk $RPATH -n -o MOUNTPOINT 2> /dev/null | grep -v '^$' | wc -l` -gt 0 ]
-      then echo "Block device $RPATH has active MOUNTPOINT."; exit 75;
+      then echo "Block device $RPATH has active MOUNTPOINT."; exit 77;
 
    elif [ `losetup -a | grep "$RPATH" | wc -l` -gt 0 ]
           then echo "This device loop-mapped ! Stop it first."; exit 62;
@@ -75,6 +75,19 @@ $HDPARM"
         then echo "!! Device has filesystem:
   $OLDFS"
      fi
+
+     if [ ! `echo "$RPATH" | grep -E "^/dev/"` ]
+     then
+       DSIZE=`lsblk -bdno SIZE "$RPATH" | tr -d ' '`;
+       echo "Block device :: Full detected size [$DSIZE] used"
+       if [ $DSIZE -le 4096 ]
+       then
+             echo "Device too small:  < 4Kb.   Stop.
+Devices /dev/sdX5+ present on MBR-disk / DOS Extended ?"
+             exit 44;
+       fi
+     fi
+
 
      echo -n "ALL DATA on storage WILL BE DESTROYED. Continue (Yes/No)? "
      read CONFIRM
