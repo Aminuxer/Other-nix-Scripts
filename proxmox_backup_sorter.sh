@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# ProxMox Backup Sorter by Amin 2017-08-30
+# ProxMox Backup Sorter by Amin 2018-07-24
 # Parse vzdump-logs and place backups in subdirs
-# Proxmox 4.x required, need VM Name data in log-files
+# Proxmox 6.x-8.x required, need VM Name data in log-files
 
 if [ -d "$1" ]
    then wdir=$1;
@@ -15,8 +15,8 @@ echo "Work Dir is $wdir";
 
 for logf in $wdir/vzdump-*.log;
 do
-   vmname=`cat $logf | grep Name | cut -d ' ' -f 7 | head -n 1`
-   vmtype=`cat $logf | grep Name | cut -d ' ' -f 5 | head -n 1`
+   vmname=`cat $logf | grep Name | cut -d ' ' -f 6 | head -n 1`
+   vmtype=`cat $logf | grep Name | cut -d ' ' -f 4 | head -n 1`
    fnpref=`echo "$logf" | cut -d '.' -f 1`
 
    if [ ! -n "$vmname" ] || [ ! -n "$vmtype" ] || [ ! -n "$fnpref" ]
