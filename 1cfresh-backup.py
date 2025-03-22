@@ -1,14 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # Extract data-dumps (XML-backups) from 1Cfresh.com cloud
-# Version : 2020-02-28 by Amin
+# Version : 2025-03-23 by Amin
 
 
 username="corp-1cfreshbackuper"
 password="MegaStrongAndGoodPassword4BackUP"
 
 oneassfresh_accound_id=100500
+cooldown_time=10                  # seconds for pause between download each backup - for API relax
 
 server='https://1cfresh.com'
 
@@ -19,7 +20,7 @@ print ('   Login: '+username)
 # Use standard libs - no external dependencies !!
 import urllib.request
 import json
-
+import time
 
 # HTTP-401-Auth support
 password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()   # Create password manager
@@ -42,7 +43,7 @@ json_version_str = json_version_obj.read().decode('utf-8')     # Read http-respo
 #print (json_version_str)
 
 json_ver = json.loads(json_version_str)
-print ('   1C Major Ver: '+ str(json_ver['version']) + ' sm_version: ' + str(json_ver['sm_version']) + "\n")
+print ('   1C Major Ver: '+ str(json_ver['version']) + ';   sm_version: ' + str(json_ver['sm_version']) + ";\n")
 
 
 
@@ -116,17 +117,32 @@ for dl in dbs:
     # get download token for each most fresh backup
     dlist_obj = urllib.request.urlopen(url_dlist, post_data.encode('utf-8'))
     dlist_str = dlist_obj.read().decode('utf-8')     # req - read - decode
+    # print(dlist_str)
     # Parse JSON
-    djson_obj = json.loads(dlist_str)
-    token = djson_obj['token']
-    url = djson_obj['url']
-    error = djson_obj['general']['error']
-    response = djson_obj['general']['response']
-    print ('   ** Backup: UUiD: ' + str(uuid) + ' TS: ' + ts + ' Name: ' + name)
-    print ('      Token: ' + str(token))
-    if (error != False):
-        print(dlist_str)
-    else:
-        fn = name + '_' + ts + '.zip'   # + ver / uuid ? 
-        local_filename, headers = urllib.request.urlretrieve(url, filename=fn)
-        print(headers)
+    try:
+      djson_obj = json.loads(dlist_str)
+      token = djson_obj['token']
+      url = djson_obj['url']
+      error = djson_obj['general']['error']
+      response = djson_obj['general']['response']
+      print ('   ** Backup: UUiD: ' + str(uuid) + ' TS: ' + ts + ' Name: ' + name)
+      print ('      Token: ' + str(token))
+      if (error != False):
+          print(dlist_str)
+      else:
+        fn = name + '_' + ts + '.zip'   # + ver / uuid ?
+        time_start = int(time.time())
+        print ('      Download to ' + fn + ' started ...')
+        try:
+           local_filename, headers = urllib.request.urlretrieve(url, filename=fn)
+           time_dl = int(time.time()) - time_start
+           print ('      OK, '+ str(time_dl) + ' seconds')
+        except HTTPError as e:
+            print("      HTTP Error-Code is {}".format(e.code))
+        except Exception as e:
+           print("Another http-exception ?");
+        print ('         sleep ' + str(cooldown_time) + ' seconds for API cool down relax ...')
+        time.sleep(cooldown_time)
+        # print(headers)
+    except Exception as err:
+      print(f"Unexpected {err=}, {type(err)=}")
