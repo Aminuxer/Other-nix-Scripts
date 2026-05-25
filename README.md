@@ -124,6 +124,10 @@ Since version (v2) don't have external dependencies;
 
 In version (v4) add remain activity seconds in table header
 
+totp_p24.py + totp_p10.py - AI-ported TOTP-Generator to Python 2.4+ and Python 1.0+
+Work under 32bit math (oldschool 32bit OS like win9x)
+For computer museums and oldschool IT-Archeologists.
+
 
 ## safety-shred.sh
 
