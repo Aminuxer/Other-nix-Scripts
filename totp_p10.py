@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
 # Micro-TOTP Generator for Python 1.0.1 (1994!)
-# Date: 2026-05-25; Aminuxer && Qwen-AI-3.6-27B && Google AI Assistant (ChatGPT)
+# Date: 2026-06-03; Aminuxer && Qwen-AI-3.6-27B && Google AI Assistant (ChatGPT)
 
 # cat totp_p10 | docker run -i dahlia/python-1.5.2-docker
 
@@ -39,6 +39,7 @@ def b32decode(value):
     pad_len = (8 - len(value) % 8) % 8
     value = value + '=' * pad_len
 
+    # 32-bit compiled extremely old python 1.x tricks
     bit_chars = ['0', '1']
     bits = ''
     for char in value:
@@ -81,7 +82,7 @@ def pack_u64_be(n):
         chr(n & 0xFF)
     )
 
-# ИСПРАВЛЕНО: Теперь строго берутся индексы элементов строки s[0], s[1]...
+# strict str index s[0], old 32b hacks
 def unpack_u32_be(s):
     b0 = long(ord(s[0])) << 24
     b1 = long(ord(s[1])) << 16
@@ -118,16 +119,16 @@ def _sha1_process_block(block, h0, h1, h2, h3, h4):
         if i < 20:
             not_b = long(b) ^ 0xFFFFFFFFL
             f = (long(b) & long(c)) | (not_b & long(d))
-            k = K[0] # ИСПРАВЛЕНО: Вернули индекс константы
+            k = K[0]
         elif i < 40:
             f = long(b) ^ long(c) ^ long(d)
-            k = K[1] # ИСПРАВЛЕНО: Вернули индекс константы
+            k = K[1]
         elif i < 60:
             f = (long(b) & long(c)) | (long(b) & long(d)) | (long(c) & long(d))
-            k = K[2] # ИСПРАВЛЕНО: Вернули индекс константы
+            k = K[2]
         else:
             f = long(b) ^ long(c) ^ long(d)
-            k = K[3] # ИСПРАВЛЕНО: Вернули индекс константы
+            k = K[3]
 
         temp = (_left_rotate(a, 5) + f + e + k + w[i]) & 0xFFFFFFFFL
 
@@ -194,7 +195,6 @@ def hotp(key_b32, counter):
     mac = hmac_sha1(key, msg)
     offset = ord(mac[-1]) & 0x0F
 
-    # Извлекаем 4 байта начиная с offset
     chunk = mac[offset:offset+4]
     binary_val = unpack_u32_be(chunk)
     
